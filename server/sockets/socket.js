@@ -31,13 +31,17 @@ io.on('connection', (client) => {
         // escuchen que se conecto un usuario o se desconecto
         client.broadcast.to(data.sala).emit('listaPersona', usuarios.getPersonasPorSala(data.sala));
 
+        // Cuando una persona se va del chat emito un evento, para informar a todos los usuarios de una sala
+        client.broadcast.to(data.sala).emit('crearMensaje', crearMensaje('Administrador', `${ data.nombre } se unió`));
+
+
         // en el callback retorno las personas conectadas al chat
         callback(usuarios.getPersonasPorSala(data.sala));
     });
 
     // El servidor necesita estar escuchando cuando algun usuario llame el metodo de
     // crearMensaje
-    client.on('crearMensaje', (data) => {
+    client.on('crearMensaje', (data, callback) => {
 
         // obtengo la persona que envia el mensaje
         let persona = usuarios.getPersona(client.id);
@@ -47,6 +51,8 @@ io.on('connection', (client) => {
 
         // emito el mensaje a todos de una misma sala
         client.broadcast.to(persona.sala).emit('crearMensaje', mensaje);
+
+        callback(mensaje);
     });
 
     // Trabajar la desconexion, no tenemos ningun parametro asi que ejecutamos una funcion
